@@ -49,12 +49,20 @@ Vector EssentialMatrixConstraint::evaluateError(const Pose3& p1,
   // compute relative Pose3 between p1 and p2
   Pose3 _1P2_ = p1.between(p2, Hp1, Hp2);
 
-  // convert to EssentialMatrix
-  Matrix D_hx_1P2;
-  EssentialMatrix hx = EssentialMatrix::FromPose3(_1P2_,
-      (Hp1 || Hp2) ? boost::optional<Matrix&>(D_hx_1P2) : boost::none);
+  // Get useful quantities
+  const Rot3& aRb = _1P2_.rotation();
+  const Point3& aTb = _1P2_.translation();
+  const auto mdir = measuredE_.direction();
+  const Vector3& u = mdir.unitVector();
 
   // Calculate derivatives if needed
+  Matrix56 D_hx_1P2;
+  if (Hp1 || Hp2) {
+    // Calculate the 5*6 Jacobian H = D_E_1P2
+    // D_E_1P2 = [D_E_1R2 D_E_1T2], 5*3 wrpt rotation, 5*3 wrpt translation
+    D_hx_1P2 << I_3x3, Z_3x3,
+                Matrix23::Zero(), mdir.basis().transpose() * aRb.matrix();
+  }
   if (Hp1) {
     // Hp1 will already contain the 6*6 derivative D_1P2_p1
     const Matrix& D_1P2_p1 = *Hp1;
@@ -69,7 +77,12 @@ Vector EssentialMatrixConstraint::evaluateError(const Pose3& p1,
   }
 
   // manifold equivalent of h(x)-z -> log(z,h(x))
-  return measuredE_.localCoordinates(hx); // 5D error
+  auto v1 = measuredE_.rotation().localCoordinates(aRb);
+  double x = u.dot(aTb);
+  auto v2 =  mdir.basis().transpose() * (aTb - x * u);
+  Vector5 v; // 5D error
+  v << v1, v2;
+  return v;
 }
 
 } /// namespace gtsam
