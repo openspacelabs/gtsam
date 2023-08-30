@@ -72,6 +72,42 @@ TEST( EssentialMatrixConstraint, test ) {
 }
 
 /* ************************************************************************* */
+TEST( EssentialMatrixConstraint, test_nonzero_error ) {
+  // Create a factor
+  Key poseKey1(1);
+  Key poseKey2(2);
+  Rot3 trueRotation = Rot3::RzRyRx(0.1, 0, 0);
+  Point3 trueTranslation(1.0, 0, 0);
+  Unit3 trueDirection(trueTranslation);
+  EssentialMatrix measurement(trueRotation, trueDirection);
+  SharedNoiseModel model = noiseModel::Isotropic::Sigma(5, 0.25);
+  EssentialMatrixConstraint factor(poseKey1, poseKey2, measurement, model);
+
+  // Create a linearization point at a non-zero-error point
+  Pose3 pose1(Rot3::RzRyRx(0.1, 0.0, 0.0), Point3(1.0, 0, 0));
+  Pose3 pose2(Rot3::RzRyRx(0.2, 0.0, 0.0), Point3(0.7, 0.8, 0));
+
+  // Calculate numerical derivatives
+  Matrix expectedH1 = numericalDerivative11<Vector5, Pose3>(
+      std::bind(&EssentialMatrixConstraint::evaluateError, &factor,
+                std::placeholders::_1, pose2, boost::none, boost::none),
+      pose1);
+  Matrix expectedH2 = numericalDerivative11<Vector5, Pose3>(
+      std::bind(&EssentialMatrixConstraint::evaluateError, &factor, pose1,
+                std::placeholders::_1, boost::none, boost::none),
+      pose2);
+
+  // Use the factor to calculate the derivative
+  Matrix actualH1;
+  Matrix actualH2;
+  factor.evaluateError(pose1, pose2, actualH1, actualH2);
+
+  // Verify we get the expected error
+  CHECK(assert_equal(expectedH1, actualH1, 1e-5));
+  CHECK(assert_equal(expectedH2, actualH2, 1e-5));
+}
+
+/* ************************************************************************* */
 int main() {
   TestResult tr;
   return TestRegistry::runAllTests(tr);
