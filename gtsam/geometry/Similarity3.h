@@ -205,6 +205,18 @@ class GTSAM_EXPORT Similarity3 : public LieGroup<Similarity3, 7> {
   static Matrix3 GetV(Vector3 w, double lambda);
 
   /// @}
+  /// @name Advanced Interface
+  /// @{
+ private:
+  /** Serialization function */
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int /*version*/) {
+    ar & BOOST_SERIALIZATION_NVP(R_);
+    ar & BOOST_SERIALIZATION_NVP(t_);
+    ar & BOOST_SERIALIZATION_NVP(s_);
+  }
+  /// @}
 };
 
 template <>

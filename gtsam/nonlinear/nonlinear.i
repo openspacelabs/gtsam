@@ -16,6 +16,8 @@ namespace gtsam {
 #include <gtsam/geometry/Point3.h>
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/geometry/Pose3.h>
+#include <gtsam/geometry/Similarity2.h>
+#include <gtsam/geometry/Similarity3.h>
 #include <gtsam/geometry/Rot2.h>
 #include <gtsam/geometry/Rot3.h>
 #include <gtsam/geometry/SO3.h>
@@ -74,6 +76,8 @@ class NonlinearFactorGraph {
                  gtsam::Rot3,
                  gtsam::Pose2,
                  gtsam::Pose3,
+                 gtsam::Similarity2,
+                 gtsam::Similarity3,
                  gtsam::Cal3_S2,
                  gtsam::Cal3Fisheye,
                  gtsam::Cal3Unified,
@@ -184,6 +188,8 @@ class Values {
   void insert(size_t j, const gtsam::SOn& P);
   void insert(size_t j, const gtsam::Rot3& rot3);
   void insert(size_t j, const gtsam::Pose3& pose3);
+  void insert(size_t j, const gtsam::Similarity2& sim2);
+  void insert(size_t j, const gtsam::Similarity3& sim3);
   void insert(size_t j, const gtsam::Unit3& unit3);
   void insert(size_t j, const gtsam::Cal3_S2& cal3_s2);
   void insert(size_t j, const gtsam::Cal3DS2& cal3ds2);
@@ -231,6 +237,8 @@ class Values {
   void update(size_t j, const gtsam::SOn& P);
   void update(size_t j, const gtsam::Rot3& rot3);
   void update(size_t j, const gtsam::Pose3& pose3);
+  void update(size_t j, const gtsam::Similarity2& sim2);
+  void update(size_t j, const gtsam::Similarity3& sim3);
   void update(size_t j, const gtsam::Unit3& unit3);
   void update(size_t j, const gtsam::Cal3_S2& cal3_s2);
   void update(size_t j, const gtsam::Cal3DS2& cal3ds2);
@@ -276,6 +284,8 @@ class Values {
   void insert_or_assign(size_t j, const gtsam::SOn& P);
   void insert_or_assign(size_t j, const gtsam::Rot3& rot3);
   void insert_or_assign(size_t j, const gtsam::Pose3& pose3);
+  void insert_or_assign(size_t j, const gtsam::Similarity2& sim2);
+  void insert_or_assign(size_t j, const gtsam::Similarity3& sim3);
   void insert_or_assign(size_t j, const gtsam::Unit3& unit3);
   void insert_or_assign(size_t j, const gtsam::Cal3_S2& cal3_s2);
   void insert_or_assign(size_t j, const gtsam::Cal3DS2& cal3ds2);
@@ -321,6 +331,8 @@ class Values {
                  gtsam::SOn,
                  gtsam::Rot3,
                  gtsam::Pose3,
+                 gtsam::Similarity2,
+                 gtsam::Similarity3,
                  gtsam::Unit3,
                  gtsam::Cal3_S2,
                  gtsam::Cal3DS2,
@@ -755,9 +767,9 @@ class ISAM2 {
   bool valueExists(gtsam::Key key) const;
   gtsam::Values calculateEstimate() const;
   template <VALUE = {gtsam::Point2, gtsam::Rot2, gtsam::Pose2, gtsam::Point3,
-                     gtsam::Rot3, gtsam::Pose3, gtsam::Cal3_S2, gtsam::Cal3DS2,
-                     gtsam::Cal3Bundler, gtsam::EssentialMatrix,
-                     gtsam::PinholeCamera<gtsam::Cal3_S2>,
+                     gtsam::Rot3, gtsam::Pose3, gtsam::Similarity2, gtsam::Similarity3,
+                     gtsam::Cal3_S2, gtsam::Cal3DS2, gtsam::Cal3Bundler,
+                     gtsam::EssentialMatrix, gtsam::PinholeCamera<gtsam::Cal3_S2>,
                      gtsam::PinholeCamera<gtsam::Cal3Bundler>,
                      gtsam::PinholeCamera<gtsam::Cal3Fisheye>,
                      gtsam::PinholeCamera<gtsam::Cal3Unified>, Vector, Matrix}>
@@ -820,6 +832,8 @@ template <T = {double,
                gtsam::Rot3,
                gtsam::Pose2,
                gtsam::Pose3,
+               gtsam::Similarity2,
+               gtsam::Similarity3,
                gtsam::Unit3,
                gtsam::Cal3_S2,
                gtsam::Cal3DS2,
@@ -844,8 +858,8 @@ virtual class PriorFactor : gtsam::NoiseModelFactor {
 #include <gtsam/nonlinear/NonlinearEquality.h>
 template <T = {gtsam::Point2, gtsam::StereoPoint2, gtsam::Point3, gtsam::Rot2,
                gtsam::SO3, gtsam::SO4, gtsam::SOn, gtsam::Rot3, gtsam::Pose2,
-               gtsam::Pose3, gtsam::Cal3_S2, gtsam::CalibratedCamera,
-               gtsam::PinholeCamera<gtsam::Cal3_S2>,
+               gtsam::Pose3, gtsam::Similarity2, gtsam::Similarity3, gtsam::Cal3_S2,
+               gtsam::CalibratedCamera, gtsam::PinholeCamera<gtsam::Cal3_S2>,
                gtsam::PinholeCamera<gtsam::Cal3Bundler>,
                gtsam::PinholeCamera<gtsam::Cal3Fisheye>,
                gtsam::PinholeCamera<gtsam::Cal3Unified>,
@@ -862,8 +876,8 @@ virtual class NonlinearEquality : gtsam::NoiseModelFactor {
 
 template <T = {gtsam::Point2, gtsam::StereoPoint2, gtsam::Point3, gtsam::Rot2,
                gtsam::SO3, gtsam::SO4, gtsam::SOn, gtsam::Rot3, gtsam::Pose2,
-               gtsam::Pose3, gtsam::Cal3_S2, gtsam::CalibratedCamera,
-               gtsam::PinholeCamera<gtsam::Cal3_S2>,
+               gtsam::Pose3, gtsam::Similarity2, gtsam::Similarity3, gtsam::Cal3_S2,
+               gtsam::CalibratedCamera, gtsam::PinholeCamera<gtsam::Cal3_S2>,
                gtsam::PinholeCamera<gtsam::Cal3Bundler>,
                gtsam::PinholeCamera<gtsam::Cal3Fisheye>,
                gtsam::PinholeCamera<gtsam::Cal3Unified>,
