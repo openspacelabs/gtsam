@@ -215,7 +215,7 @@ Similarity2 Similarity2::Expmap(const Vector4& v,  //
                                 OptionalJacobian<4, 4> Hm) {
   const Vector2 t = v.head<2>();
   const Rot2 R = Rot2::Expmap(v.segment<1>(2));
-  const double s = v[3];
+  const double s = exp(v[3]);
   if (Hm) {
     throw std::runtime_error("Similarity2::Expmap: derivative not implemented");
   }
@@ -223,7 +223,14 @@ Similarity2 Similarity2::Expmap(const Vector4& v,  //
 }
 
 Matrix4 Similarity2::AdjointMap() const {
-  throw std::runtime_error("Similarity2::AdjointMap not implemented");
+  double c = s_ * R_.c(), s = s_ * R_.s(), x = s_ * t_.x(), y = s_ * t_.y();
+  Matrix4 rvalue;
+  rvalue <<
+      c,  -s,   y,  -x,
+      s,   c,  -x,  -y,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0, 1.0 ;
+  return rvalue;
 }
 
 std::ostream& operator<<(std::ostream& os, const Similarity2& p) {

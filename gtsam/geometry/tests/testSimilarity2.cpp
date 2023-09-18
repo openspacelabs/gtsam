@@ -57,6 +57,20 @@ TEST(Similarity2, Getters) {
 }
 
 //******************************************************************************
+TEST(Similarity2, AdjointMap) {
+  Similarity2 T(R, P, s);
+  Vector4 xi(1, 2, 3e-4, 5e-6);
+  Similarity2 expected = T * Similarity2::Expmap(xi) * T.inverse();
+  Vector xiprime = T.AdjointMap() * xi;
+  EXPECT(assert_equal(expected, Similarity2::Expmap(xiprime), 1e-6));
+
+  Vector4 xi2(4, -3, 2e-4, -1e-4);
+  Similarity2 expected2 = T * Similarity2::Expmap(xi2) * T.inverse();
+  Vector xiprime2 = T.AdjointMap() * xi2;
+  EXPECT(assert_equal(expected2, Similarity2::Expmap(xiprime2), 1e-6));
+}
+
+//******************************************************************************
 int main() {
   TestResult tr;
   return TestRegistry::runAllTests(tr);
