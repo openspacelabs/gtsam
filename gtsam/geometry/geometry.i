@@ -1046,6 +1046,28 @@ class Similarity2 {
   static gtsam::Similarity2 Align(const gtsam::Point2Pairs& abPointPairs);
   static gtsam::Similarity2 Align(const gtsam::Pose2Pairs& abPosePairs);
 
+  // Testable
+  void print(string s = "") const;
+  bool equals(const gtsam::Similarity2& s, double tol) const;
+
+  // Group
+  static gtsam::Similarity2 Identity();
+  gtsam::Similarity2 inverse() const;
+  gtsam::Similarity2 compose(const gtsam::Similarity2& s2) const;
+  gtsam::Similarity2 between(const gtsam::Similarity2& s2) const;
+
+  // Operator Overloads
+  gtsam::Similarity2 operator*(const gtsam::Similarity2& s) const;
+
+  // Manifold
+  gtsam::Similarity2 retract(Vector v) const;
+  Vector localCoordinates(const gtsam::Similarity2& s) const;
+
+  // Lie Group
+  static gtsam::Similarity2 Expmap(Vector v);
+  static Vector Logmap(const gtsam::Similarity2& s);
+  Matrix AdjointMap() const;
+
   // Standard Interface
   bool equals(const gtsam::Similarity2& sim, double tol) const;
   Matrix matrix() const;
