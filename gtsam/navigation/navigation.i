@@ -313,6 +313,17 @@ virtual class GPSFactor2 : gtsam::NonlinearFactor {
   gtsam::Point3 measurementIn() const;
 };
 
+#include <gtsam/navigation/MagFactor.h>
+virtual class MagFactor2 : gtsam::NonlinearFactor{
+  MagFactor2(size_t key1, size_t key2, const gtsam::Point3& measured, const gtsam::Rot3& nRb,
+            const gtsam::noiseModel::Base* model);
+
+  // Testable
+  void print(string s = "", const gtsam::KeyFormatter& keyFormatter =
+                                gtsam::DefaultKeyFormatter) const;
+  bool equals(const gtsam::MagFactor2& expected, double tol);
+};
+
 #include <gtsam/navigation/Scenario.h>
 virtual class Scenario {
   gtsam::Pose3 pose(double t) const;

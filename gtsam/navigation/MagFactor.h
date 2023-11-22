@@ -125,7 +125,7 @@ public:
  * This version uses model measured bM = bRn * nM + bias
  * and optimizes for both nM and the bias, where nM is in units defined by magnetometer
  */
-class MagFactor2: public NoiseModelFactorN<Point3, Point3> {
+class GTSAM_EXPORT MagFactor2: public NoiseModelFactorN<Point3, Point3> {
 
   const Point3 measured_; ///< The measured magnetometer values
   const Rot3 bRn_; ///< The assumed known rotation from nav to body
