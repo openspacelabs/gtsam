@@ -203,6 +203,22 @@ virtual class PoseRotationPrior : gtsam::NoiseModelFactor {
 typedef gtsam::PoseRotationPrior<gtsam::Pose2> PoseRotationPrior2D;
 typedef gtsam::PoseRotationPrior<gtsam::Pose3> PoseRotationPrior3D;
 
+#include <gtsam/slam/ReferenceFrameFactor.h>
+template <POINT, TRANSFORM>
+virtual class ReferenceFrameFactor : gtsam::NoiseModelFactor
+{
+  ReferenceFrameFactor(size_t globalKey, size_t transKey, size_t localKey,
+                       const gtsam::noiseModel::Base *model);
+  Vector evaluateError(const POINT &global, const TRANSFORM &trans, const POINT &local) const;
+  void print(string s = "",
+             const gtsam::KeyFormatter &keyFormatter = gtsam::DefaultKeyFormatter) const;
+  // enabling serialization functionality
+  void serialize() const;
+};
+
+typedef gtsam::ReferenceFrameFactor<gtsam::Point2, gtsam::Pose2> PointReferenceFrameFactorPose2;
+typedef gtsam::ReferenceFrameFactor<gtsam::Point2, gtsam::Similarity2> PointReferenceFrameFactorSim2;
+
 #include <gtsam/slam/EssentialMatrixFactor.h>
 virtual class EssentialMatrixFactor : gtsam::NoiseModelFactor {
   EssentialMatrixFactor(size_t key, const gtsam::Point2& pA,
@@ -330,11 +346,9 @@ virtual class FrobeniusBetweenFactor : gtsam::NoiseModelFactor {
 
   Vector evaluateError(const T& R1, const T& R2);
 };
-  
 #include <gtsam/slam/lago.h>
 namespace lago {
   gtsam::Values initialize(const gtsam::NonlinearFactorGraph& graph, bool useOdometricPath = true);
   gtsam::Values initialize(const gtsam::NonlinearFactorGraph& graph, const gtsam::Values& initialGuess);
 }
-  
 }  // namespace gtsam

@@ -146,9 +146,23 @@ Similarity2 Similarity2::inverse() const {
   return Similarity2(Rt, sRt, 1.0 / s_);
 }
 
-Point2 Similarity2::transformFrom(const Point2& p) const {
-  const Point2 q = R_ * p + t_;
-  return s_ * q;
+Point2 Similarity2::transformFrom(const Point2 &p,
+                                  OptionalJacobian<2, 4> Hpose, OptionalJacobian<2, 2> Hpoint) const
+{
+  OptionalJacobian<2, 2> Htranslation = Hpose.cols<2>(0);
+  OptionalJacobian<2, 1> Hrotation = Hpose.cols<1>(2);
+  OptionalJacobian<2, 1> Hscale = Hpose.cols<1>(3);
+  const Point2 q = R_.rotate(p, Hrotation, Hpoint);
+  Matrix22 scaledRot = s_ * R_.matrix();
+  if (Hpoint)
+    *Hpoint *= s_;
+  if (Hrotation)
+    *Hrotation *= s_;
+  if (Htranslation)
+    *Htranslation = (Hpoint ? *Hpoint : scaledRot);
+  if (Hscale)
+    *Hscale = s_ * q;
+  return s_ * (q + t_);
 }
 
 Pose2 Similarity2::transformFrom(const Pose2& T) const {
