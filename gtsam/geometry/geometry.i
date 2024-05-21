@@ -28,7 +28,7 @@ class Point2 {
   // enabling serialization functionality
   void serialize() const;
 };
-  
+
 class Point2Pairs {
   Point2Pairs();
   size_t size() const;
@@ -343,7 +343,7 @@ class Rot3 {
   // Group action on Unit3
   gtsam::Unit3 rotate(const gtsam::Unit3& p) const;
   gtsam::Unit3 unrotate(const gtsam::Unit3& p) const;
-  
+
   // Standard Interface
   static gtsam::Rot3 Expmap(Vector v);
   static Vector Logmap(const gtsam::Rot3& p);
@@ -430,7 +430,7 @@ class Pose2 {
   // enabling serialization functionality
   void serialize() const;
 };
-  
+
 #include <gtsam/geometry/Pose3.h>
 class Pose3 {
   // Standard Constructors
@@ -1042,6 +1042,7 @@ class Similarity2 {
 
   gtsam::Point2 transformFrom(const gtsam::Point2& p) const;
   gtsam::Pose2 transformFrom(const gtsam::Pose2& T);
+  Matrix transformFrom(const Matrix &points) const;
 
   static gtsam::Similarity2 Align(const gtsam::Point2Pairs& abPointPairs);
   static gtsam::Similarity2 Align(const gtsam::Pose2Pairs& abPosePairs);
@@ -1271,7 +1272,7 @@ gtsam::TriangulationResult triangulateSafe(
     const gtsam::Point2Vector& measurements,
     const gtsam::TriangulationParameters& params);
 
-// Cal3Unified versions                                
+// Cal3Unified versions
 gtsam::Point3 triangulatePoint3(const gtsam::Pose3Vector& poses,
                                 gtsam::Cal3Unified* sharedCal,
                                 const gtsam::Point2Vector& measurements,

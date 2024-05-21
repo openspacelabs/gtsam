@@ -100,6 +100,8 @@ class GTSAM_EXPORT Similarity2 : public LieGroup<Similarity2, 4> {
                                     OptionalJacobian<2, 4> Hpose = boost::none,
                                     OptionalJacobian<2, 2> Hpoint = boost::none) const;
 
+  Matrix transformFrom(const Matrix &points) const;
+
   /**
    * Action on a pose T.
    * |Rs  ts|   |R t|   |Rs*R Rs*t+ts|

@@ -171,6 +171,16 @@ Pose2 Similarity2::transformFrom(const Pose2& T) const {
   return Pose2(R, t);
 }
 
+Matrix Similarity2::transformFrom(const Matrix &points) const
+{
+  if (points.rows() != 2)
+  {
+    throw std::invalid_argument("Similarity2:transformFrom expects 2*N matrix.");
+  }
+  const Matrix2 R = rotation().matrix();
+  return s_ * ((R * points).colwise() + t_); // Eigen broadcasting!
+}
+
 Point2 Similarity2::operator*(const Point2& p) const {
   return transformFrom(p);
 }
