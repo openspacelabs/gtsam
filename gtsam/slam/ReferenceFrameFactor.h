@@ -55,16 +55,15 @@ P transform_point(
  */
 template<class POINT, class TRANSFORM>
 class ReferenceFrameFactor : public NoiseModelFactorN<POINT, TRANSFORM, POINT> {
-protected:
-  /** default constructor for serialization only */
-  ReferenceFrameFactor() {}
-
 public:
   typedef NoiseModelFactorN<POINT, TRANSFORM, POINT> Base;
   typedef ReferenceFrameFactor<POINT, TRANSFORM> This;
 
   typedef POINT Point;
   typedef TRANSFORM Transform;
+
+  /** default constructor for serialization only */
+  ReferenceFrameFactor() {}
 
   /**
    * General constructor with arbitrary noise model (constrained or otherwise)
