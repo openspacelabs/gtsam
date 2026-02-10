@@ -23,6 +23,8 @@
 #include <gtsam/linear/GaussianMultifrontalSolver.h>
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/geometry/Pose3.h>
+#include <gtsam/geometry/Similarity2.h>
+#include <gtsam/geometry/Similarity3.h>
 #include <gtsam/geometry/SL4.h>
 #include <gtsam/geometry/Cal3DS2.h>
 //#include <gtsam/geometry/Cal3_S2Stereo.h>
@@ -37,6 +39,8 @@ typedef PriorFactor<Rot2>                 PriorFactorRot2;
 typedef PriorFactor<Rot3>                 PriorFactorRot3;
 typedef PriorFactor<Pose2>                PriorFactorPose2;
 typedef PriorFactor<Pose3>                PriorFactorPose3;
+typedef PriorFactor<Similarity2>          PriorFactorSimilarity2;
+typedef PriorFactor<Similarity3>          PriorFactorSimilarity3;
 typedef PriorFactor<SL4>                  PriorFactorSL4;
 typedef PriorFactor<Cal3_S2>              PriorFactorCal3_S2;
 typedef PriorFactor<Cal3DS2>              PriorFactorCal3DS2;
@@ -133,6 +137,8 @@ BOOST_CLASS_EXPORT_GUID(PriorFactorRot2, "gtsam::PriorFactorRot2");
 BOOST_CLASS_EXPORT_GUID(PriorFactorRot3, "gtsam::PriorFactorRot3");
 BOOST_CLASS_EXPORT_GUID(PriorFactorPose2, "gtsam::PriorFactorPose2");
 BOOST_CLASS_EXPORT_GUID(PriorFactorPose3, "gtsam::PriorFactorPose3");
+BOOST_CLASS_EXPORT_GUID(PriorFactorSimilarity2, "gtsam::PriorFactorSimilarity2");
+BOOST_CLASS_EXPORT_GUID(PriorFactorSimilarity3, "gtsam::PriorFactorSimilarity3");
 BOOST_CLASS_EXPORT_GUID(PriorFactorSL4, "gtsam::PriorFactorSL4");
 BOOST_CLASS_EXPORT_GUID(PriorFactorCal3_S2, "gtsam::PriorFactorCal3_S2");
 BOOST_CLASS_EXPORT_GUID(PriorFactorCal3DS2, "gtsam::PriorFactorCal3DS2");
@@ -287,5 +293,4 @@ Values::shared_ptr gtsam::deserializeValuesFromXMLFile(const std::string& fname,
 }
 
 /* ************************************************************************* */
-
 

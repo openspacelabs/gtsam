@@ -346,16 +346,21 @@ typedef gtsam::GenericStereoFactor<gtsam::Pose3, gtsam::Point3>
     GenericStereoFactor3D;
 
 #include <gtsam/slam/ReferenceFrameFactor.h>
-template<LANDMARK = {gtsam::Point3}, POSE = {gtsam::Pose3}>
-class ReferenceFrameFactor : gtsam::NoiseModelFactor {
-  ReferenceFrameFactor(gtsam::Key globalKey, gtsam::Key transKey, 
-                       gtsam::Key localKey, const gtsam::noiseModel::Base* model);
-
-  gtsam::Vector evaluateError(const LANDMARK& global, const POSE& trans, const LANDMARK& local);
-
-  void print(const std::string& s="",
-    const gtsam::KeyFormatter& keyFormatter = gtsam::DefaultKeyFormatter);
+template <POINT, TRANSFORM>
+virtual class ReferenceFrameFactor : gtsam::NoiseModelFactor {
+  ReferenceFrameFactor(size_t globalKey, size_t transKey, size_t localKey,
+                       const gtsam::noiseModel::Base* model);
+  Vector evaluateError(const POINT& global, const TRANSFORM& trans,
+                       const POINT& local) const;
+  void print(string s = "",
+             const gtsam::KeyFormatter& keyFormatter = gtsam::DefaultKeyFormatter) const;
+  // enabling serialization functionality
+  void serialize() const;
 };
+
+typedef gtsam::ReferenceFrameFactor<gtsam::Point3, gtsam::Pose3> ReferenceFrameFactorPoint3Pose3;
+typedef gtsam::ReferenceFrameFactor<gtsam::Point2, gtsam::Pose2> PointReferenceFrameFactorPose2;
+typedef gtsam::ReferenceFrameFactor<gtsam::Point2, gtsam::Similarity2> PointReferenceFrameFactorSim2;
 
 #include <gtsam/slam/RotateFactor.h>
 class RotateFactor : gtsam::NoiseModelFactor {

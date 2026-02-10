@@ -1384,6 +1384,7 @@ class Similarity2 {
 
   gtsam::Point2 transformFrom(const gtsam::Point2& p) const;
   gtsam::Pose2 transformFrom(const gtsam::Pose2& T);
+  gtsam::Matrix transformFrom(const gtsam::Matrix& points) const;
 
   static gtsam::Similarity2 Align(const gtsam::Point2Pairs& abPointPairs);
   static gtsam::Similarity2 Align(const gtsam::Pose2Pairs& abPosePairs);
@@ -1406,6 +1407,7 @@ class Similarity2 {
   // Lie group
   static gtsam::Similarity2 Expmap(gtsam::Vector v);
   static gtsam::Vector Logmap(const gtsam::Similarity2& S);
+  gtsam::Matrix AdjointMap() const;
   gtsam::Similarity2 expmap(const gtsam::Vector& v);
   gtsam::Vector logmap(const gtsam::Similarity2& g);
   static gtsam::Matrix Hat(const gtsam::Vector& xi);

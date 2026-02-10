@@ -96,7 +96,12 @@ public:
   /// @{
 
   /// Action on a point p is s*(R*p+t)
-  Point2 transformFrom(const Point2& p) const;
+  GTSAM_EXPORT Point2 transformFrom(const Point2& p,
+                                    OptionalJacobian<2, 4> Hpose = {},
+                                    OptionalJacobian<2, 2> Hpoint = {}) const;
+
+  /// Action on 2xN points matrix.
+  Matrix transformFrom(const Matrix& points) const;
 
   /**
    * Action on a pose T.
