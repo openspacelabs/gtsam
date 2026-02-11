@@ -96,7 +96,7 @@ public:
   /// @{
 
   /// Action on a point p is s*(R*p+t)
-  GTSAM_EXPORT Point2 transformFrom(const Point2& p,
+  Point2 transformFrom(const Point2& p,
                                     OptionalJacobian<2, 4> Hpose = {},
                                     OptionalJacobian<2, 2> Hpoint = {}) const;
 
