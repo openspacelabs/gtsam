@@ -27,6 +27,7 @@
 #include <gtsam/linear/VectorValues.h>
 #include <gtsam/inference/Ordering.h>
 #include <gtsam/inference/FactorGraph-inst.h>
+#include <gtsam/navigation/CombinedImuFactor.h>
 #include <gtsam/config.h> // for GTSAM_USE_TBB
 
 #ifdef GTSAM_USE_TBB
@@ -36,6 +37,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <sstream>
 #include <set>
 
 using namespace std;
@@ -176,6 +178,59 @@ double NonlinearFactorGraph::error(const Values& values) const {
       total_error += factor->error(values);
   }
   return total_error;
+}
+
+/* ************************************************************************* */
+void NonlinearFactorGraph::assertNoCombinedImuLegacyBiasInitPriorConflicts() const {
+#ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
+  std::set<Key> legacyBiasKeys;
+  std::set<Key> priorBiasKeys;
+
+  for (const sharedFactor& factor : factors_) {
+    if (!factor) continue;
+
+    if (auto combined = std::dynamic_pointer_cast<CombinedImuFactor>(factor)) {
+      const auto& params = combined->preintegratedMeasurements().p();
+      if (params.isLegacyBiasAccOmegaInitEnabled()) {
+        const KeyVector& keys = combined->keys();
+        if (keys.size() >= 6) {
+          legacyBiasKeys.insert(keys[4]);
+          legacyBiasKeys.insert(keys[5]);
+        }
+      }
+      continue;
+    }
+
+    if (auto biasPrior =
+            std::dynamic_pointer_cast<PriorFactor<imuBias::ConstantBias>>(factor)) {
+      const KeyVector& keys = biasPrior->keys();
+      if (!keys.empty()) {
+        priorBiasKeys.insert(keys[0]);
+      }
+    }
+  }
+
+  KeyVector conflictingKeys;
+  for (const Key key : legacyBiasKeys) {
+    if (priorBiasKeys.count(key) != 0) {
+      conflictingKeys.push_back(key);
+    }
+  }
+
+  if (!conflictingKeys.empty()) {
+    std::ostringstream oss;
+    oss << "Invalid graph configuration: legacy CombinedImu bias init covariance mode "
+        << "(setBiasAccOmegaInit) cannot be used together with "
+        << "PriorFactor<imuBias::ConstantBias> on the same bias key(s): ";
+    for (size_t i = 0; i < conflictingKeys.size(); ++i) {
+      if (i != 0) oss << ", ";
+      oss << conflictingKeys[i];
+    }
+    oss << ". Choose exactly one strategy for each bias key.";
+    std::cerr << oss.str() << std::endl;
+    throw std::runtime_error(oss.str());
+  }
+#endif
 }
 
 /* ************************************************************************* */

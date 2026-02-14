@@ -60,6 +60,7 @@ const Values& NonlinearOptimizer::values() const {
 
 /* ************************************************************************* */
 void NonlinearOptimizer::defaultOptimize() {
+  graph_.assertNoCombinedImuLegacyBiasInitPriorConflicts();
   const NonlinearOptimizerParams& params = _params();
   double currentError = error();
 

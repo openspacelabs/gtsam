@@ -117,6 +117,11 @@ void PreintegratedCombinedMeasurementsT<
   Matrix3 theta_H_omega = C.topRows<3>();
   Matrix3 pos_H_acc = B.middleRows<3>(3);
   Matrix3 vel_H_acc = B.bottomRows<3>();
+#ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
+  Matrix3 theta_H_omega_init = -theta_H_omega;
+  Matrix3 pos_H_acc_init = -pos_H_acc;
+  Matrix3 vel_H_acc_init = -vel_H_acc;
+#endif
 
   // overall Jacobian wrt preintegrated measurements (df/dx)
   Eigen::Matrix<double, 15, 15> F;
@@ -135,6 +140,9 @@ void PreintegratedCombinedMeasurementsT<
   const Matrix3& aCov = this->p().accelerometerCovariance;
   const Matrix3& wCov = this->p().gyroscopeCovariance;
   const Matrix3& iCov = this->p().integrationCovariance;
+#ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
+  const bool useLegacyBiasInitCov = this->p().isLegacyBiasAccOmegaInitEnabled();
+#endif
 
   // first order uncertainty propagation
   // Optimized matrix mult: (1/dt) * G * measurementCovariance * G.transpose()
@@ -156,6 +164,37 @@ void PreintegratedCombinedMeasurementsT<
   // OFF BLOCK DIAGONAL TERMS
   D_t_v(&G_measCov_Gt) = (pos_H_acc * (aCov / dt) * vel_H_acc.transpose());
   D_v_t(&G_measCov_Gt) = (vel_H_acc * (aCov / dt) * pos_H_acc.transpose());
+
+#ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
+  if (useLegacyBiasInitCov) {
+    const Matrix6& bInitCov = this->p().biasAccOmegaInt;
+    const Matrix3& bInitCov11 = bInitCov.block<3, 3>(0, 0) / dt;
+    const Matrix3& bInitCov12 = bInitCov.block<3, 3>(0, 3) / dt;
+    const Matrix3& bInitCov21 = bInitCov.block<3, 3>(3, 0) / dt;
+    const Matrix3& bInitCov22 = bInitCov.block<3, 3>(3, 3) / dt;
+
+    D_R_R(&G_measCov_Gt).noalias() +=
+        theta_H_omega_init * bInitCov22 * theta_H_omega_init.transpose();
+    D_t_t(&G_measCov_Gt).noalias() +=
+        pos_H_acc_init * bInitCov11 * pos_H_acc_init.transpose();
+    D_v_v(&G_measCov_Gt).noalias() +=
+        vel_H_acc_init * bInitCov11 * vel_H_acc_init.transpose();
+
+    D_R_t(&G_measCov_Gt) =
+        theta_H_omega_init * bInitCov21 * pos_H_acc_init.transpose();
+    D_R_v(&G_measCov_Gt) =
+        theta_H_omega_init * bInitCov21 * vel_H_acc_init.transpose();
+    D_t_R(&G_measCov_Gt) =
+        pos_H_acc_init * bInitCov12 * theta_H_omega_init.transpose();
+    D_v_R(&G_measCov_Gt) =
+        vel_H_acc_init * bInitCov12 * theta_H_omega_init.transpose();
+
+    D_t_v(&G_measCov_Gt).noalias() +=
+        pos_H_acc_init * bInitCov11 * vel_H_acc_init.transpose();
+    D_v_t(&G_measCov_Gt).noalias() +=
+        vel_H_acc_init * bInitCov11 * pos_H_acc_init.transpose();
+  }
+#endif
 
   preintMeasCov_.noalias() += G_measCov_Gt;
 }

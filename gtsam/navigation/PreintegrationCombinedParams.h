@@ -46,6 +46,7 @@ struct GTSAM_EXPORT PreintegrationCombinedParams : PreintegrationParams {
     biasOmegaCovariance(I_3x3) {
 #ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
     biasAccOmegaInt.setZero();
+    legacyBiasAccOmegaInitEnabled = false;
 #endif
   }
 
@@ -57,6 +58,7 @@ struct GTSAM_EXPORT PreintegrationCombinedParams : PreintegrationParams {
     biasOmegaCovariance(I_3x3) {
 #ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
     biasAccOmegaInt.setZero();
+    legacyBiasAccOmegaInitEnabled = false;
 #endif
   }
 
@@ -88,15 +90,27 @@ struct GTSAM_EXPORT PreintegrationCombinedParams : PreintegrationParams {
   
 #ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
   Matrix6 biasAccOmegaInt;
-  /// @deprecated: biasAccOmegaInt is no longer used. Use a prior on first bias instead.
+  bool legacyBiasAccOmegaInitEnabled;
+  /// @deprecated: Enables legacy bias init covariance mode for compatibility.
   void setBiasAccOmegaInit(const Matrix6& cov) {
-    std::cerr << "Warning: setBiasAccOmegaInit() is deprecated and no longer used." << std::endl;
+    std::cerr
+        << "Warning: setBiasAccOmegaInit() enables legacy CombinedImu bias init "
+        << "covariance compatibility mode. Do not combine this with "
+        << "PriorFactor<imuBias::ConstantBias> on the same bias key."
+        << std::endl;
     biasAccOmegaInt = cov;
+    legacyBiasAccOmegaInitEnabled = true;
   }
-  /// @deprecated: biasAccOmegaInt is no longer used. Use a prior on first bias instead.
+  /// @deprecated: Accessor for legacy compatibility mode covariance.
   const Matrix6& getBiasAccOmegaInit() const {
-    std::cerr << "Warning: getBiasAccOmegaInit() is deprecated and no longer used." << std::endl;
+    std::cerr
+        << "Warning: getBiasAccOmegaInit() is deprecated and only used by legacy "
+        << "CombinedImu compatibility mode."
+        << std::endl;
     return biasAccOmegaInt;
+  }
+  bool isLegacyBiasAccOmegaInitEnabled() const {
+    return legacyBiasAccOmegaInitEnabled;
   }
 #endif
 
@@ -112,6 +126,7 @@ struct GTSAM_EXPORT PreintegrationCombinedParams : PreintegrationParams {
     ar& BOOST_SERIALIZATION_NVP(biasOmegaCovariance);
 #ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
     ar& BOOST_SERIALIZATION_NVP(biasAccOmegaInt);
+    ar& BOOST_SERIALIZATION_NVP(legacyBiasAccOmegaInitEnabled);
 #endif
   }
 #endif
