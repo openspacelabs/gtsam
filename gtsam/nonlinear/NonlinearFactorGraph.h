@@ -110,7 +110,7 @@ namespace gtsam {
      * Validate that legacy CombinedImu bias-init covariance mode is not mixed
      * with PriorFactor<imuBias::ConstantBias> on the same bias keys.
      *
-     * Throws std::runtime_error on conflicting usage.
+     * Logs warning on conflicting usage.
      */
     void assertNoCombinedImuLegacyBiasInitPriorConflicts() const;
 
