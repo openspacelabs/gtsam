@@ -3,7 +3,7 @@
  * @brief Projective Special Linear Group (PSL(4, R)) Pose
  * @author: Hyungtae Lim
  */
-
+#include <cassert>
 #include <gtsam/geometry/SL4.h>
 
 // To use exp(), log()
