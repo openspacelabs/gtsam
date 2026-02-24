@@ -53,12 +53,11 @@ TEST( EssentialMatrixConstraint, test ) {
 
   // Calculate numerical derivatives
   Matrix expectedH1 = numericalDerivative11<Vector5, Pose3>(
-      std::bind(&EssentialMatrixConstraint::evaluateError, &factor,
-                std::placeholders::_1, pose2, boost::none, boost::none),
-      pose1);
+		[&factor, &pose2](const Pose3& p1) {return factor.evaluateError(p1, pose2);},
+		pose1);
+
   Matrix expectedH2 = numericalDerivative11<Vector5, Pose3>(
-      std::bind(&EssentialMatrixConstraint::evaluateError, &factor, pose1,
-                std::placeholders::_1, boost::none, boost::none),
+		[&factor, &pose1](const Pose3& p2) {return factor.evaluateError(pose1, p2);},
       pose2);
 
   // Use the factor to calculate the derivative
@@ -89,12 +88,10 @@ TEST( EssentialMatrixConstraint, test_nonzero_error ) {
 
   // Calculate numerical derivatives
   Matrix expectedH1 = numericalDerivative11<Vector5, Pose3>(
-      std::bind(&EssentialMatrixConstraint::evaluateError, &factor,
-                std::placeholders::_1, pose2, boost::none, boost::none),
+      [&factor, &pose2](const Pose3& p1) { return factor.evaluateError(p1, pose2); },
       pose1);
   Matrix expectedH2 = numericalDerivative11<Vector5, Pose3>(
-      std::bind(&EssentialMatrixConstraint::evaluateError, &factor, pose1,
-                std::placeholders::_1, boost::none, boost::none),
+      [&factor, &pose1](const Pose3& p2) { return factor.evaluateError(pose1, p2); },
       pose2);
 
   // Use the factor to calculate the derivative
@@ -113,4 +110,3 @@ int main() {
   return TestRegistry::runAllTests(tr);
 }
 /* ************************************************************************* */
-

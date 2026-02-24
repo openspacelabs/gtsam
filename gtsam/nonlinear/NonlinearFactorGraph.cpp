@@ -27,6 +27,7 @@
 #include <gtsam/linear/VectorValues.h>
 #include <gtsam/inference/Ordering.h>
 #include <gtsam/inference/FactorGraph-inst.h>
+#include <gtsam/navigation/CombinedImuFactor.h>
 #include <gtsam/config.h> // for GTSAM_USE_TBB
 
 #ifdef GTSAM_USE_TBB
@@ -36,6 +37,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <sstream>
 #include <set>
 
 using namespace std;
@@ -129,7 +131,7 @@ void NonlinearFactorGraph::dot(std::ostream& os, const Values& values,
     // Create factors and variable connections
     size_t i = 0;
     for (const KeyVector& factorKeys : structure) {
-      writer.processFactor(i++, factorKeys, keyFormatter, boost::none, &os);
+      writer.processFactor(i++, factorKeys, keyFormatter, {}, &os);
     }
   } else {
     // Create factors and variable connections
@@ -179,6 +181,58 @@ double NonlinearFactorGraph::error(const Values& values) const {
 }
 
 /* ************************************************************************* */
+void NonlinearFactorGraph::assertNoCombinedImuLegacyBiasInitPriorConflicts() const {
+#ifdef GTSAM_ALLOW_DEPRECATED_SINCE_V43
+  std::set<Key> legacyBiasKeys;
+  std::set<Key> priorBiasKeys;
+
+  for (const sharedFactor& factor : factors_) {
+    if (!factor) continue;
+
+    if (auto combined = std::dynamic_pointer_cast<CombinedImuFactor>(factor)) {
+      const auto& params = combined->preintegratedMeasurements().p();
+      if (params.isLegacyBiasAccOmegaInitEnabled()) {
+        const KeyVector& keys = combined->keys();
+        if (keys.size() >= 6) {
+          legacyBiasKeys.insert(keys[4]);
+          legacyBiasKeys.insert(keys[5]);
+        }
+      }
+      continue;
+    }
+
+    if (auto biasPrior =
+            std::dynamic_pointer_cast<PriorFactor<imuBias::ConstantBias>>(factor)) {
+      const KeyVector& keys = biasPrior->keys();
+      if (!keys.empty()) {
+        priorBiasKeys.insert(keys[0]);
+      }
+    }
+  }
+
+  KeyVector conflictingKeys;
+  for (const Key key : legacyBiasKeys) {
+    if (priorBiasKeys.count(key) != 0) {
+      conflictingKeys.push_back(key);
+    }
+  }
+
+  if (!conflictingKeys.empty()) {
+    std::ostringstream oss;
+    oss << "Warning: legacy CombinedImu bias init covariance mode "
+        << "(setBiasAccOmegaInit) is being used together with "
+        << "PriorFactor<imuBias::ConstantBias> on the same bias key(s): ";
+    for (size_t i = 0; i < conflictingKeys.size(); ++i) {
+      if (i != 0) oss << ", ";
+      oss << conflictingKeys[i];
+    }
+    oss << ". Continuing in compatibility mode.";
+    std::cerr << oss.str() << std::endl;
+  }
+#endif
+}
+
+/* ************************************************************************* */
 Ordering NonlinearFactorGraph::orderingCOLAMD() const
 {
   return Ordering::Colamd(*this);
@@ -194,14 +248,14 @@ Ordering NonlinearFactorGraph::orderingCOLAMDConstrained(const FastMap<Key, int>
 SymbolicFactorGraph::shared_ptr NonlinearFactorGraph::symbolic() const
 {
   // Generate the symbolic factor graph
-  SymbolicFactorGraph::shared_ptr symbolic = boost::make_shared<SymbolicFactorGraph>();
+  SymbolicFactorGraph::shared_ptr symbolic = std::make_shared<SymbolicFactorGraph>();
   symbolic->reserve(size());
 
   for (const sharedFactor& factor: factors_) {
     if(factor)
-      *symbolic += SymbolicFactor(*factor);
+      symbolic->push_back(SymbolicFactor(*factor));
     else
-      *symbolic += SymbolicFactorGraph::sharedFactor();
+      symbolic->push_back(SymbolicFactorGraph::sharedFactor());
   }
 
   return symbolic;
@@ -241,7 +295,7 @@ GaussianFactorGraph::shared_ptr NonlinearFactorGraph::linearize(const Values& li
   gttic(NonlinearFactorGraph_linearize);
 
   // create an empty linear FG
-  GaussianFactorGraph::shared_ptr linearFG = boost::make_shared<GaussianFactorGraph>();
+  GaussianFactorGraph::shared_ptr linearFG = std::make_shared<GaussianFactorGraph>();
 
 #ifdef GTSAM_USE_TBB
 
@@ -265,11 +319,11 @@ GaussianFactorGraph::shared_ptr NonlinearFactorGraph::linearize(const Values& li
   linearFG->reserve(size());
 
   // linearize all factors
-  for(const sharedFactor& factor: factors_) {
-    if(factor) {
-      (*linearFG) += factor->linearize(linearizationPoint);
+  for (const sharedFactor& factor : factors_) {
+    if (factor) {
+      linearFG->push_back(factor->linearize(linearizationPoint));
     } else
-    (*linearFG) += GaussianFactor::shared_ptr();
+      linearFG->push_back(GaussianFactor::shared_ptr());
   }
 
 #endif

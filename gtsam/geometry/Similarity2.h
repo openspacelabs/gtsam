@@ -17,8 +17,7 @@
 
 #pragma once
 
-#include <gtsam/base/Lie.h>
-#include <gtsam/base/Manifold.h>
+#include <gtsam/base/MatrixLieGroup.h>
 #include <gtsam/dllexport.h>
 #include <gtsam/geometry/Point2.h>
 #include <gtsam/geometry/Pose2.h>
@@ -32,19 +31,19 @@ class Pose2;
 /**
  * 2D similarity transform
  */
-class GTSAM_EXPORT Similarity2 : public LieGroup<Similarity2, 4> {
+class GTSAM_EXPORT Similarity2 : public MatrixLieGroup<Similarity2, 4, 3> {
   /// @name Pose Concept
   /// @{
   typedef Rot2 Rotation;
   typedef Point2 Translation;
   /// @}
 
- private:
+private:
   Rot2 R_;
   Point2 t_;
   double s_;
 
- public:
+public:
   /// @name Constructors
   /// @{
 
@@ -74,9 +73,10 @@ class GTSAM_EXPORT Similarity2 : public LieGroup<Similarity2, 4> {
   bool operator==(const Similarity2& other) const;
 
   /// Print with optional string
-  void print(const std::string& s) const;
+  void print(const std::string& s = "") const;
 
-  friend std::ostream& operator<<(std::ostream& os, const Similarity2& p);
+  GTSAM_EXPORT friend std::ostream& operator<<(std::ostream& os,
+                                               const Similarity2& p);
 
   /// @}
   /// @name Group
@@ -96,11 +96,12 @@ class GTSAM_EXPORT Similarity2 : public LieGroup<Similarity2, 4> {
   /// @{
 
   /// Action on a point p is s*(R*p+t)
-  GTSAM_EXPORT Point2 transformFrom(const Point2 &p,
-                                    OptionalJacobian<2, 4> Hpose = boost::none,
-                                    OptionalJacobian<2, 2> Hpoint = boost::none) const;
+  Point2 transformFrom(const Point2& p,
+                                    OptionalJacobian<2, 4> Hpose = {},
+                                    OptionalJacobian<2, 2> Hpoint = {}) const;
 
-  Matrix transformFrom(const Matrix &points) const;
+  /// Action on 2xN points matrix.
+  Matrix transformFrom(const Matrix& points) const;
 
   /**
    * Action on a pose T.
@@ -142,25 +143,30 @@ class GTSAM_EXPORT Similarity2 : public LieGroup<Similarity2, 4> {
   /// @name Lie Group
   /// @{
 
+  using LieAlgebra = Matrix3;
+
+  /// Calculate expmap and logmap coefficients.
+  static Matrix2 GetV(double theta, double lambda);
+
   /**
    * Log map at the identity
    * \f$ [t_x, t_y, \delta, \lambda] \f$
    */
   static Vector4 Logmap(const Similarity2& S,  //
-                        OptionalJacobian<4, 4> Hm = boost::none);
+                        OptionalJacobian<4, 4> Hm = {});
 
   /// Exponential map at the identity
   static Similarity2 Expmap(const Vector4& v,  //
-                            OptionalJacobian<4, 4> Hm = boost::none);
+                            OptionalJacobian<4, 4> Hm = {});
 
   /// Chart at the origin
   struct ChartAtOrigin {
     static Similarity2 Retract(const Vector4& v,
-                               ChartJacobian H = boost::none) {
+                               ChartJacobian H = {}) {
       return Similarity2::Expmap(v, H);
     }
     static Vector4 Local(const Similarity2& other,
-                         ChartJacobian H = boost::none) {
+                         ChartJacobian H = {}) {
       return Similarity2::Logmap(other, H);
     }
   };
@@ -170,11 +176,17 @@ class GTSAM_EXPORT Similarity2 : public LieGroup<Similarity2, 4> {
 
   using LieGroup<Similarity2, 4>::inverse;
 
+  /// Hat maps from tangent vector to Lie algebra
+  static Matrix3 Hat(const Vector4& xi);
+
+  /// Vee maps from Lie algebra to tangent vector
+  static Vector4 Vee(const Matrix3& X);
+
   /// @}
   /// @name Standard interface
   /// @{
 
-  /// Calculate 4*4 matrix group equivalent
+  /// Calculate 3*3 matrix group equivalent
   Matrix3 matrix() const;
 
   /// Return a GTSAM rotation
@@ -186,31 +198,26 @@ class GTSAM_EXPORT Similarity2 : public LieGroup<Similarity2, 4> {
   /// Return the scale
   double scale() const { return s_; }
 
-  /// Dimensionality of tangent space = 4 DOF - used to autodetect sizes
-  inline static size_t Dim() { return 4; }
-
-  /// Dimensionality of tangent space = 4 DOF
-  inline size_t dim() const { return 4; }
-
-  /// @}
-  /// @name Advanced Interface
-  /// @{
  private:
-  /** Serialization function */
-  friend class boost::serialization::access;
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int /*version*/) {
-    ar & BOOST_SERIALIZATION_NVP(R_);
-    ar & BOOST_SERIALIZATION_NVP(t_);
-    ar & BOOST_SERIALIZATION_NVP(s_);
-  }
+
+  #if GTSAM_ENABLE_BOOST_SERIALIZATION
+    /** Serialization function */
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int /*version*/) {
+      ar & BOOST_SERIALIZATION_NVP(R_);
+      ar & BOOST_SERIALIZATION_NVP(t_);
+      ar & BOOST_SERIALIZATION_NVP(s_);
+    }
+  #endif
+
   /// @}
 };
 
 template <>
-struct traits<Similarity2> : public internal::LieGroup<Similarity2> {};
+struct traits<Similarity2> : public internal::MatrixLieGroup<Similarity2, 3> {};
 
 template <>
-struct traits<const Similarity2> : public internal::LieGroup<Similarity2> {};
+struct traits<const Similarity2> : public internal::MatrixLieGroup<Similarity2, 3> {};
 
 }  // namespace gtsam
