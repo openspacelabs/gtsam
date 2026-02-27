@@ -210,24 +210,20 @@ void NonlinearFactorGraph::assertNoCombinedImuLegacyBiasInitPriorConflicts() con
     }
   }
 
-  KeyVector conflictingKeys;
+  bool hasConflict = false;
   for (const Key key : legacyBiasKeys) {
     if (priorBiasKeys.count(key) != 0) {
-      conflictingKeys.push_back(key);
+      hasConflict = true;
+      break;
     }
   }
 
-  if (!conflictingKeys.empty()) {
-    std::ostringstream oss;
-    oss << "Warning: legacy CombinedImu bias init covariance mode "
-        << "(setBiasAccOmegaInit) is being used together with "
-        << "PriorFactor<imuBias::ConstantBias> on the same bias key(s): ";
-    for (size_t i = 0; i < conflictingKeys.size(); ++i) {
-      if (i != 0) oss << ", ";
-      oss << conflictingKeys[i];
-    }
-    oss << ". Continuing in compatibility mode.";
-    std::cerr << oss.str() << std::endl;
+  if (hasConflict) {
+    std::cerr << "Warning: legacy CombinedImu bias init covariance mode "
+              << "(setBiasAccOmegaInit) is being used together with "
+              << "PriorFactor<imuBias::ConstantBias> on the same bias key(s). "
+              << "Continuing in compatibility mode."
+              << std::endl;
   }
 #endif
 }
