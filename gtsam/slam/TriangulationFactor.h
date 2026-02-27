@@ -47,7 +47,7 @@ protected:
 
   // Keep a copy of measurement and calibration for I/O
   const CAMERA camera_; ///< CAMERA in which this landmark was seen
-  const Measurement measured_; ///< 2D measurement
+  Measurement measured_; ///< 2D measurement
 
   // verbosity handling for Cheirality Exceptions
   const bool throwCheirality_; ///< If true, rethrows Cheirality exceptions (default: false)
