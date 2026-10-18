@@ -500,6 +500,49 @@ virtual class EssentialMatrixConstraint : gtsam::NoiseModelFactor {
   const gtsam::EssentialMatrix& measured() const;
 };
 
+#include <gtsam/slam/InverseDepthBearingFactor.h>
+virtual class InverseDepthBearingFactor : gtsam::NoiseModelFactor {
+  InverseDepthBearingFactor(gtsam::Key anchorKey, gtsam::Key observerKey,
+                            gtsam::Key inverseDepthKey, const gtsam::Unit3& anchorBearing,
+                            const gtsam::Unit3& measured, const gtsam::noiseModel::Base* model);
+  InverseDepthBearingFactor(gtsam::Key anchorKey, gtsam::Key observerKey,
+                            gtsam::Key inverseDepthKey, const gtsam::Unit3& anchorBearing,
+                            const gtsam::Unit3& measured, const gtsam::noiseModel::Base* model,
+                            const gtsam::Pose3& anchorSensor, const gtsam::Pose3& observerSensor);
+  void print(string s = "", const gtsam::KeyFormatter& keyFormatter =
+                                gtsam::DefaultKeyFormatter) const;
+  bool equals(const gtsam::InverseDepthBearingFactor& expected, double tol) const;
+  gtsam::Vector evaluateError(const gtsam::Pose3& anchor, const gtsam::Pose3& observer,
+                              double inverseDepth) const;
+  static gtsam::Point3 Landmark(const gtsam::Pose3& anchor, const gtsam::Unit3& anchorBearing,
+                                double inverseDepth);
+  gtsam::Point3 landmark(const gtsam::Pose3& anchor, double inverseDepth) const;
+  gtsam::Unit3 predict(const gtsam::Pose3& anchor, const gtsam::Pose3& observer,
+                       double inverseDepth) const;
+  const gtsam::Unit3& anchorBearing() const;
+  const gtsam::Unit3& measured() const;
+
+  // enabling serialization functionality
+  void serialize() const;
+};
+
+#include <gtsam/slam/DirectionFactor.h>
+virtual class DirectionFactor : gtsam::NoiseModelFactor {
+  DirectionFactor(gtsam::Key poseKey, gtsam::Key directionKey, const gtsam::Matrix& normals,
+                  const gtsam::Vector& weights, const gtsam::noiseModel::Base* model);
+  void print(string s = "", const gtsam::KeyFormatter& keyFormatter =
+                                gtsam::DefaultKeyFormatter) const;
+  bool equals(const gtsam::DirectionFactor& expected, double tol) const;
+  gtsam::Vector evaluateError(const gtsam::Pose3& pose, double direction) const;
+  double meanDirection(const gtsam::Rot3& R) const;
+  static double wrap90(double a);
+  const gtsam::Matrix& normals() const;
+  const gtsam::Vector& weights() const;
+
+  // enabling serialization functionality
+  void serialize() const;
+};
+
 #include <gtsam/slam/dataset.h>
 
 enum NoiseFormat {
